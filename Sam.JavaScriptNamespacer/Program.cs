@@ -47,6 +47,9 @@
 
             int functionCount = 0;
 
+            var replace = ConfigurationManager.AppSettings["replace"];
+            var replaceOriginals = bool.Parse(replace);
+
             // This is probably very inefficient. Quick and dirty!
             foreach (var jsFile in jsFiles)
             {          
@@ -105,11 +108,21 @@
 
                 var text = sb.ToString();
                 var newFile = StartIIFE + newNs + text + EndIIFE;
-                File.WriteAllText(jsFile.Replace("js", "iife") + ".js", newFile);
+
+                if (replaceOriginals)
+                {
+                    File.Delete(jsFile);
+                    File.WriteAllText(jsFile, newFile);
+                }
+                else
+                {
+                    File.WriteAllText(jsFile.Replace("js", "iife") + ".js", newFile);            
+                }
             }
 
             Console.WriteLine("Finished in {0} ms", sw.ElapsedMilliseconds);
             Console.WriteLine("Fixed {0} public functions", functionCount);
+
             Console.ReadKey();
         }
 
