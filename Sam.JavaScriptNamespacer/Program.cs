@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Diagnostics;
+using System.Linq;
 
 namespace Sam.JavaScriptNamespacer
 {
@@ -11,6 +12,9 @@ namespace Sam.JavaScriptNamespacer
     {
         static void Main(string[] args)
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            Console.WriteLine("Started (wait for Finished)");
             var path = ConfigurationManager.AppSettings["path"];
             var rootNameSpace = ConfigurationManager.AppSettings["rootNamespace"]; 
             const string JavaScriptFileExtension = "*js";
@@ -39,7 +43,11 @@ namespace Sam.JavaScriptNamespacer
             // WARNING: Possible infinate loop if directories have a loop
             string[] jsFiles = Directory.GetFiles(path, JavaScriptFileExtension, SearchOption.AllDirectories);
 
+            Console.WriteLine("Found {0} JavaScript files.", jsFiles.Length);
+
             const string EndFunc = " = function(";
+
+            int functionCount = 0;
 
             // This is probably very inefficient. Quick and dirty!
             foreach (var jsFile in jsFiles)
@@ -82,10 +90,11 @@ namespace Sam.JavaScriptNamespacer
                         if (line.StartsWith("function "))
                         {
                             var newLine = line
-                                .Replace("function ", jsName + ".")
+                                .Replace("function ", NjsName + ".")
                                 .Replace("(", EndFunc);
 
                             sb.Append(FourSpaces + newLine + "\r");
+                            functionCount++;
                             continue;
                         }
                     }
@@ -101,6 +110,8 @@ namespace Sam.JavaScriptNamespacer
                 File.WriteAllText(jsFile + ".s", newFile);
             }
 
+            Console.WriteLine("Finished in {0} ms", sw.ElapsedMilliseconds);
+            Console.WriteLine("Fixed {0} public functions", functionCount);
             Console.ReadKey();
         }
 
