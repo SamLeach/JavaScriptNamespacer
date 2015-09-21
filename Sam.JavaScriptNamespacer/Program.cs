@@ -1,8 +1,6 @@
-﻿using System.Diagnostics;
-using System.Linq;
-
-namespace Sam.JavaScriptNamespacer
+﻿namespace Sam.JavaScriptNamespacer
 {
+    using System.Diagnostics;
     using System.Configuration;
     using System.IO;
     using System;
