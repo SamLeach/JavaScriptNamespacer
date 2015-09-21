@@ -105,7 +105,7 @@
 
                 var text = sb.ToString();
                 var newFile = StartIIFE + newNs + text + EndIIFE;
-                File.WriteAllText(jsFile + ".s", newFile);
+                File.WriteAllText(jsFile.Replace("js", "iife") + ".js", newFile);
             }
 
             Console.WriteLine("Finished in {0} ms", sw.ElapsedMilliseconds);
@@ -115,7 +115,7 @@
 
         private static string ToLowerCamelCase(string s)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             for (int i = 0; i < s.Length; i++)
             {
