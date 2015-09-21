@@ -1,5 +1,7 @@
 ﻿namespace Sam.JavaScriptNamespacer
 {
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Diagnostics;
     using System.Configuration;
     using System.IO;
@@ -72,17 +74,26 @@
                     .Replace("YYY", NsubFolder)
                     .Replace("ZZZ", NjsName);
 
-                var lines = File.ReadAllLines(jsFile);
+                var lines = File.ReadAllLines(jsFile, Encoding.UTF8);
 
-                var sb = new StringBuilder();
+                var stringArray = new List<string>();
 
                 var privateMethods = false;
+                var previousLine = "";
+                int i = 0;
                 foreach (var line in lines)
                 {
                     if (line.StartsWith("// METODOS AUXILIARES"))
                     {
                         privateMethods = true;
-                        sb.Append(FourSpaces + line);
+                        var boo = FourSpaces + line;
+                        boo = boo
+                            .Replace("\r", "")
+                            .Replace("\n", "")
+                            .Replace("\t", "");
+
+                        stringArray.Add(boo + "\r\n");
+                        i++;
                         continue;
                     }
 
@@ -94,29 +105,54 @@
                                 .Replace("function ", NjsName + ".")
                                 .Replace("(", EndFunc);
 
-                            sb.Append(FourSpaces + newLine + "\r");
+                            var boo = FourSpaces + newLine;
+                            boo = boo
+                                .Replace("\r", "")
+                                .Replace("\n", "")
+                                .Replace("\t", "");
+
+                            stringArray.Add(boo + "\r\n");
+
                             functionCount++;
+                            i++;
                             continue;
                         }
                     }
 
-                    var equal = line.Replace("==", "===")   
-                                    .Replace("!=", "!==");
+                    var equal = line.Replace(" == ", " === ")   
+                                    .Replace(" != ", " !== ");
 
-                    sb.Append(FourSpaces + equal + "\r");
+                    // move the braces up to JavaScript style
+                    if (line.Replace(" ", "").Replace("\n", "").Replace("\r", "").Replace("\t", "") == "{")
+                    {
+                        stringArray[i - 1] = stringArray[i - 1].Replace("\r", "").Replace("\t", "").Replace("\n", "") + "{\r\n";
+                        continue;
+                    }
+
+                    var booo = FourSpaces + equal;
+                    booo = booo
+                        .Replace("\r", "")
+                        .Replace("\n", "")
+                        .Replace("\t", "");
+
+                    stringArray.Add(booo + "\r\n");
+
+                    //stringArray.Add(FourSpaces + equal + "\r\n");
+                    i++;
                 }
 
-                var text = sb.ToString();
+                var text = stringArray.Aggregate("", (current, str) => current + str);
+
                 var newFile = StartIIFE + newNs + text + EndIIFE;
 
                 if (replaceOriginals)
                 {
                     File.Delete(jsFile);
-                    File.WriteAllText(jsFile, newFile);
+                    File.WriteAllText(jsFile, newFile, Encoding.UTF8);
                 }
                 else
                 {
-                    File.WriteAllText(jsFile.Replace("js", "iife") + ".js", newFile);            
+                    File.WriteAllText(jsFile.Replace("js", "iife") + ".js", newFile, Encoding.UTF8);            
                 }
             }
 
